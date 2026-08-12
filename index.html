@@ -33,6 +33,14 @@
     .listing .no-image { display:grid; place-items:center; color:#527386; font-size:.75rem; }
     .listing-info { padding:11px; } .price { font-size:1.05rem; font-weight:900; } .area { margin-top:3px; color:var(--muted); font-size:.72rem; }
     .contact { display:inline-block; margin-top:10px; color:var(--green); font-size:.72rem; font-weight:800; text-decoration:none; }
+    .contact-button { padding:0; border:0; background:transparent; cursor:pointer; }
+    .item-page { display:none; padding:clamp(22px,4vw,42px); margin:0 0 60px; border:1px solid var(--line); border-radius:24px; background:#fff; }
+    .item-page.active { display:block; }
+    .back { margin-bottom:20px; padding:0; border:0; color:var(--green); background:transparent; cursor:pointer; font-weight:800; }
+    .item-detail { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.75fr); gap:clamp(24px,5vw,60px); align-items:start; }
+    .item-detail img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:16px; background:var(--blue); }
+    .item-detail h2 { margin:0 0 14px; } .detail-email { display:block; margin:16px 0; color:var(--green); font-size:.9rem; font-weight:800; overflow-wrap:anywhere; }
+    .item-detail a.primary { display:inline-flex; align-items:center; min-height:43px; padding:0 17px; color:#fff; border-radius:8px; background:var(--green); font-size:.85rem; font-weight:800; text-decoration:none; }
     .seller-form { margin:24px 0 14px; } .seller-form label { flex:1 1 210px; }
     .slots { display:grid; grid-template-columns:repeat(auto-fill,minmax(86px,1fr)); gap:9px; margin-top:18px; }
     .slots[hidden] { display:none; }
@@ -43,7 +51,7 @@
     .submit-tile { min-height:50px; padding:8px; border:0; border-radius:9px; color:#fff; background:#183e2d; cursor:pointer; font-weight:800; font-size:.72rem; }
     .note { margin:18px 0 0; color:#718077; font-size:.75rem; line-height:1.5; }
     footer { padding:22px 0 42px; color:#708077; font-size:.75rem; }
-    @media(max-width:600px) { header { align-items:start; } .tag { text-align:left; } .hero { border-radius:18px; } .panel { padding:22px; } }
+    @media(max-width:600px) { header { align-items:start; } .tag { text-align:left; } .hero { border-radius:18px; } .panel { padding:22px; } .item-page { padding:22px; } .item-detail { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -56,6 +64,8 @@
       <p id="buyer-status" class="status">Showing all published listings in this browser demo.</p><div id="listings" class="listing-grid"></div>
       <p class="note">Demo note: “nearest” uses postal-code similarity only. A secure backend and geocoding service are needed for true distance sorting. The buyer sees an approximate pickup area; the contact email opens only when they select Contact seller.</p>
     </section>
+
+    <section id="item-detail" class="item-page" aria-live="polite"></section>
 
     <section id="seller" class="panel active seller-panel">
       <h2>Create a fast seller page</h2><p class="intro">Enter your pickup postal code and email once. Then add one photo and a price for each item.</p>
@@ -87,7 +97,8 @@
     slots.addEventListener('input',async event=>{if(!event.target.classList.contains('item-price'))return;const tile=event.target.closest('.slot'),image=tile.querySelector('img');if(!image||!activeEmail)return;const slot=Number(tile.querySelector('[data-slot]').dataset.slot),prior=(await getItems(activeEmail)).find(item=>item.slot===slot);if(prior)try{await putItem({...prior,price:event.target.value});}catch{}});
     async function publish(){if(!activeEmail)return;const items=await getItems(activeEmail);if(!items.length){sellerStatus.textContent='Add at least one photo before publishing.';return;}await putSeller({email:activeEmail,postal:sellerPostal.value.trim(),published:true});sellerStatus.textContent=`Published ${items.length} item${items.length===1?'':'s'} in this browser demo.`;renderListings();}
     function closeness(a,b){a=normalize(a);b=normalize(b);let score=0;for(let i=0;i<Math.min(a.length,b.length);i+=1){if(a[i]===b[i])score+=1;else break;}return score;}
-    async function renderListings(sortPostal=''){try{const sellers=(await allSellers()).filter(s=>s.published);const rows=[];for(const seller of sellers){for(const item of await getItems(seller.email))rows.push({seller,item});}if(sortPostal)rows.sort((a,b)=>closeness(sortPostal,b.seller.postal)-closeness(sortPostal,a.seller.postal));listings.innerHTML='';if(!rows.length){listings.innerHTML='<p class="intro">No published listings in this browser yet. Open “I want to sell” to make a demo listing.</p>';return;}rows.forEach(({seller,item})=>{const card=document.createElement('article');card.className='listing';card.innerHTML=`<img src="${item.image}" alt="Item for sale"><div class="listing-info"><div class="price">${item.price?`$${Number(item.price).toFixed(2)}`:'Price not set'}</div><div class="area">Pickup area: ${seller.postal}</div><a class="contact" href="mailto:${seller.email}?subject=Question%20about%20your%20iSell%20item">Contact seller →</a></div>`;listings.appendChild(card);});}catch{buyerStatus.textContent='Listings could not load in this browser.';}}
+    async function renderListings(sortPostal=''){try{const sellers=(await allSellers()).filter(s=>s.published);const rows=[];for(const seller of sellers){for(const item of await getItems(seller.email))rows.push({seller,item});}if(sortPostal)rows.sort((a,b)=>closeness(sortPostal,b.seller.postal)-closeness(sortPostal,a.seller.postal));listings.innerHTML='';if(!rows.length){listings.innerHTML='<p class="intro">No published listings in this browser yet. Open the seller section below to make a demo listing.</p>';return;}rows.forEach(({seller,item})=>{const card=document.createElement('article');card.className='listing';card.innerHTML=`<img src="${item.image}" alt="Item for sale"><div class="listing-info"><div class="price">${item.price?`$${Number(item.price).toFixed(2)}`:'Price not set'}</div><div class="area">Pickup area: ${seller.postal}</div><button class="contact contact-button" type="button" data-email="${seller.email}" data-slot="${item.slot}">View item & contact seller →</button></div>`;card.querySelector('button').addEventListener('click',()=>openItem(seller.email,item.slot));listings.appendChild(card);});}catch{buyerStatus.textContent='Listings could not load in this browser.';}}
+    async function openItem(email,slot){const seller=await getSeller(email);const item=(await getItems(email)).find(row=>row.slot===slot);if(!seller||!item)return;const detail=document.getElementById('item-detail');detail.innerHTML=`<button id="back-to-listings" class="back" type="button">← Back to listings</button><div class="item-detail"><img src="${item.image}" alt="Item for sale"><div><p class="intro">Individual iSell listing</p><h2>Item for sale</h2><div class="price">${item.price?`$${Number(item.price).toFixed(2)}`:'Price set by seller'}</div><p class="area">Pickup area: ${seller.postal}</p><span class="detail-email">Seller email: ${seller.email}</span><a class="primary" href="mailto:${seller.email}?subject=Question%20about%20your%20iSell%20item">Email seller</a></div></div>`;detail.classList.add('active');detail.querySelector('#back-to-listings').addEventListener('click',()=>{detail.classList.remove('active');document.getElementById('buyer').scrollIntoView({behavior:'smooth'});});detail.scrollIntoView({behavior:'smooth'});}
     document.getElementById('all-items').addEventListener('click',()=>{buyerStatus.textContent='Showing all published listings in this browser demo.';renderListings();}); document.getElementById('nearby').addEventListener('click',()=>{const postal=buyerPostal.value.trim();buyerStatus.textContent=postal?`Showing listings sorted by similarity to ${postal}.`:'Enter a ZIP / postal code first.';if(postal)renderListings(postal);});renderListings();
   </script>
 </body>
