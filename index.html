@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iSell · Sell nearby, quickly</title>
+  <style>
+    :root { --ink:#1f2723; --paper:#f5f7f1; --green:#34795a; --lime:#cde773; --blue:#bddcef; --line:#d9e1d9; --muted:#617168; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:linear-gradient(150deg,#ecf2e8,#f9fbf7 45%,#e7f1f7); color:var(--ink); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    .wrap { width:min(1150px,calc(100% - 36px)); margin:auto; }
+    header { padding:28px 0 20px; display:flex; justify-content:space-between; gap:18px; align-items:center; }
+    .brand { font-size:clamp(2.1rem,5vw,3.8rem); font-weight:900; letter-spacing:-.1em; } .brand i { color:var(--green); font-style:normal; }
+    .tag { max-width:250px; color:var(--muted); text-align:right; font-size:.78rem; line-height:1.4; }
+    .hero { padding:clamp(24px,5vw,52px); border-radius:26px; background:var(--green); color:#fafff7; box-shadow:0 18px 45px #174b3620; }
+    .hero h1 { max-width:700px; margin:0; font-size:clamp(2rem,5vw,4.6rem); line-height:.96; letter-spacing:-.075em; }
+    .hero p { max-width:620px; margin:18px 0 0; color:#e4f0e9; font-size:1rem; line-height:1.55; }
+    .switch { display:flex; gap:8px; margin:28px 0 20px; }
+    .switch button { padding:12px 18px; border:1px solid var(--line); border-radius:999px; color:#4c6055; background:#fff; cursor:pointer; font-weight:800; }
+    .switch button.active { color:#153626; border-color:#153626; background:var(--lime); }
+    .panel { display:none; padding:clamp(22px,4vw,42px); margin:0 0 60px; border:1px solid var(--line); border-radius:24px; background:#fff; }
+    .panel.active { display:block; }
+    .seller-panel { background:linear-gradient(135deg,#f7fbf3,#edf7f0); }
+    h2 { margin:0; font-size:clamp(1.6rem,3vw,2.7rem); letter-spacing:-.055em; } .intro { margin:8px 0 24px; color:var(--muted); font-size:.9rem; line-height:1.5; }
+    .buy-controls,.seller-form { display:flex; gap:10px; flex-wrap:wrap; align-items:end; padding:18px; border-radius:16px; background:#f3f7f1; }
+    label { display:grid; gap:6px; color:#53645a; font-size:.7rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+    input { min-height:43px; padding:9px 11px; border:1px solid #cdd9cf; border-radius:8px; color:var(--ink); background:#fff; font:400 .9rem system-ui,sans-serif; text-transform:none; letter-spacing:normal; }
+    button.primary { min-height:43px; padding:0 17px; border:0; border-radius:8px; color:#fff; background:var(--green); cursor:pointer; font-weight:800; }
+    .status { margin:17px 0; color:#5b7064; font-size:.82rem; font-weight:700; }
+    .listing-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:14px; }
+    .listing { overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#fff; }
+    .listing img,.listing .no-image { display:block; width:100%; aspect-ratio:1; object-fit:cover; background:var(--blue); }
+    .listing .no-image { display:grid; place-items:center; color:#527386; font-size:.75rem; }
+    .listing-info { padding:11px; } .price { font-size:1.05rem; font-weight:900; } .area { margin-top:3px; color:var(--muted); font-size:.72rem; }
+    .contact { display:inline-block; margin-top:10px; color:var(--green); font-size:.72rem; font-weight:800; text-decoration:none; }
+    .seller-form { margin:24px 0 14px; } .seller-form label { flex:1 1 210px; }
+    .slots { display:grid; grid-template-columns:repeat(auto-fill,minmax(86px,1fr)); gap:9px; margin-top:18px; }
+    .slots[hidden] { display:none; }
+    .slot { position:relative; aspect-ratio:1; display:grid; place-items:center; overflow:hidden; padding:6px; border:1px dashed #a8bfaf; border-radius:9px; color:#61766a; background:#fafff8; cursor:pointer; text-align:center; font-size:.63rem; font-weight:800; }
+    .slot input[type=file] { position:absolute; inset:0; z-index:3; width:100%; height:100%; min-height:0; opacity:0; cursor:pointer; }
+    .slot img { position:absolute; inset:0; z-index:1; width:100%; height:100%; object-fit:cover; }
+    .slot .item-price { position:absolute; z-index:4; right:4px; bottom:4px; width:calc(100% - 8px); min-height:0; height:25px; padding:3px 5px; border:0; border-radius:5px; background:#fffffff0; color:#274636; cursor:text; font-size:.65rem; font-weight:800; }
+    .submit-tile { min-height:50px; padding:8px; border:0; border-radius:9px; color:#fff; background:#183e2d; cursor:pointer; font-weight:800; font-size:.72rem; }
+    .note { margin:18px 0 0; color:#718077; font-size:.75rem; line-height:1.5; }
+    footer { padding:22px 0 42px; color:#708077; font-size:.75rem; }
+    @media(max-width:600px) { header { align-items:start; } .tag { text-align:left; } .hero { border-radius:18px; } .panel { padding:22px; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header><div class="brand"><i>i</i>Sell</div><div class="tag">Quick local listings<br>Photos + prices + pickup area</div></header>
+    <section class="hero"><h1>Sell nearby, without the long listing form.</h1><p>Buyers browse everything or look around their own postal code. Sellers add a pickup postal code, contact email, and up to 50 quick photo-and-price listings.</p></section>
+    <section id="buyer" class="panel active">
+      <h2>Find something nearby</h2><p class="intro">Browse every published item, or enter your postal code to place matching areas first.</p>
+      <div class="buy-controls"><label>Your ZIP / postal code<input id="buyer-postal" type="text" placeholder="e.g. T2N 1N4"></label><button id="nearby" class="primary" type="button">Sort nearest areas</button><button id="all-items" class="primary" type="button">Browse all</button></div>
+      <p id="buyer-status" class="status">Showing all published listings in this browser demo.</p><div id="listings" class="listing-grid"></div>
+      <p class="note">Demo note: “nearest” uses postal-code similarity only. A secure backend and geocoding service are needed for true distance sorting. The buyer sees an approximate pickup area; the contact email opens only when they select Contact seller.</p>
+    </section>
+
+    <section id="seller" class="panel active seller-panel">
+      <h2>Create a fast seller page</h2><p class="intro">Enter your pickup postal code and email once. Then add one photo and a price for each item.</p>
+      <div class="seller-form"><label>Pickup ZIP / postal code<input id="seller-postal" type="text" placeholder="e.g. T2N 1N4"></label><label>Contact email<input id="seller-email" type="email" placeholder="you@example.com"></label></div>
+      <p id="seller-status" class="status">Enter a pickup postal code and valid email to open 50 selling boxes.</p><div id="slots" class="slots" hidden></div>
+      <p class="note">This GitHub demo saves items only in the same browser. A real iSell version needs a backend so nearby buyers can see sellers from other devices, and so emails can be verified.</p>
+    </section>
+    <footer>© <span id="year"></span> iSell · Quick neighbourhood marketplace</footer>
+  </div>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const sellerPostal = document.getElementById('seller-postal'), sellerEmail = document.getElementById('seller-email');
+    const sellerStatus = document.getElementById('seller-status'), slots = document.getElementById('slots');
+    const listings = document.getElementById('listings'), buyerPostal = document.getElementById('buyer-postal'), buyerStatus = document.getElementById('buyer-status');
+    let activeEmail = '';
+    const request = indexedDB.open('iSellDemo', 1);
+    request.onupgradeneeded = event => { const db = event.target.result; const sellers = db.createObjectStore('sellers',{keyPath:'email'}); const items = db.createObjectStore('items',{keyPath:'key'}); items.createIndex('email','email',{unique:false}); };
+    const database = new Promise((resolve,reject) => { request.onsuccess=()=>resolve(request.result); request.onerror=()=>reject(request.error); });
+    async function getSeller(email) { const db=await database; return new Promise((resolve,reject)=>{const r=db.transaction('sellers').objectStore('sellers').get(email);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);}); }
+    async function putSeller(value) { const db=await database; return new Promise((resolve,reject)=>{const r=db.transaction('sellers','readwrite').objectStore('sellers').put(value);r.onsuccess=()=>resolve();r.onerror=()=>reject(r.error);}); }
+    async function getItems(email) { const db=await database; return new Promise((resolve,reject)=>{const r=db.transaction('items').objectStore('items').index('email').getAll(email);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);}); }
+    async function putItem(value) { const db=await database; return new Promise((resolve,reject)=>{const r=db.transaction('items','readwrite').objectStore('items').put(value);r.onsuccess=()=>resolve();r.onerror=()=>reject(r.error);}); }
+    async function allSellers() { const db=await database; return new Promise((resolve,reject)=>{const r=db.transaction('sellers').objectStore('sellers').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);}); }
+    function normalize(value) { return value.replace(/\s/g,'').toUpperCase(); }
+    function makeSlots(items=[]) { slots.innerHTML=''; for(let n=1;n<=50;n+=1) { const old=items.find(item=>item.slot===n); const tile=document.createElement('label'); tile.className='slot'; tile.innerHTML=`<span>Item ${n}<br>+ photo</span><input type="file" accept="image/*" data-slot="${n}" aria-label="Upload item ${n}"><input class="item-price" type="number" min="0" step="0.01" placeholder="Price $" value="${old?.price||''}" aria-label="Price for item ${n}">`; if(old){tile.querySelector('span').remove();const image=document.createElement('img');image.src=old.image;image.alt=`Item ${n}`;tile.appendChild(image);} slots.appendChild(tile); } const submit=document.createElement('button');submit.className='submit-tile';submit.type='button';submit.textContent='Publish my iSell items';submit.addEventListener('click',publish);slots.appendChild(submit); }
+    async function openSeller() { if(!sellerPostal.value.trim()||!sellerEmail.validity.valid){slots.hidden=true;sellerStatus.textContent='Enter a pickup postal code and valid email to open 50 selling boxes.';return;} const email=sellerEmail.value.trim().toLowerCase(); if(email!==activeEmail){activeEmail=email;sellerStatus.textContent='Loading your seller boxes…';try{const seller=await getSeller(email);const items=await getItems(email);if(activeEmail!==email)return;if(seller)sellerPostal.value=seller.postal;makeSlots(items);sellerStatus.textContent=`${items.length} of 50 item boxes used for this email.`;}catch{makeSlots();sellerStatus.textContent='50 selling boxes are ready.';}}slots.hidden=false; }
+    sellerPostal.addEventListener('input',openSeller); sellerEmail.addEventListener('input',openSeller);
+    slots.addEventListener('change',event=>{if(event.target.type!=='file'||!event.target.files[0])return;const file=event.target.files[0],tile=event.target.closest('.slot'),slot=Number(event.target.dataset.slot),reader=new FileReader();reader.onload=async()=>{tile.querySelector('span')?.remove();tile.querySelector('img')?.remove();const image=document.createElement('img');image.src=reader.result;image.alt=`Item ${slot}`;tile.appendChild(image);try{await putItem({key:`${activeEmail}-${slot}`,email:activeEmail,slot,image:reader.result,price:tile.querySelector('.item-price').value});sellerStatus.textContent=`${slots.querySelectorAll('img').length} of 50 items saved in this browser.`;}catch{sellerStatus.textContent='Preview added, but browser saving was unavailable.';}};reader.readAsDataURL(file);});
+    slots.addEventListener('input',async event=>{if(!event.target.classList.contains('item-price'))return;const tile=event.target.closest('.slot'),image=tile.querySelector('img');if(!image||!activeEmail)return;const slot=Number(tile.querySelector('[data-slot]').dataset.slot),prior=(await getItems(activeEmail)).find(item=>item.slot===slot);if(prior)try{await putItem({...prior,price:event.target.value});}catch{}});
+    async function publish(){if(!activeEmail)return;const items=await getItems(activeEmail);if(!items.length){sellerStatus.textContent='Add at least one photo before publishing.';return;}await putSeller({email:activeEmail,postal:sellerPostal.value.trim(),published:true});sellerStatus.textContent=`Published ${items.length} item${items.length===1?'':'s'} in this browser demo.`;renderListings();}
+    function closeness(a,b){a=normalize(a);b=normalize(b);let score=0;for(let i=0;i<Math.min(a.length,b.length);i+=1){if(a[i]===b[i])score+=1;else break;}return score;}
+    async function renderListings(sortPostal=''){try{const sellers=(await allSellers()).filter(s=>s.published);const rows=[];for(const seller of sellers){for(const item of await getItems(seller.email))rows.push({seller,item});}if(sortPostal)rows.sort((a,b)=>closeness(sortPostal,b.seller.postal)-closeness(sortPostal,a.seller.postal));listings.innerHTML='';if(!rows.length){listings.innerHTML='<p class="intro">No published listings in this browser yet. Open “I want to sell” to make a demo listing.</p>';return;}rows.forEach(({seller,item})=>{const card=document.createElement('article');card.className='listing';card.innerHTML=`<img src="${item.image}" alt="Item for sale"><div class="listing-info"><div class="price">${item.price?`$${Number(item.price).toFixed(2)}`:'Price not set'}</div><div class="area">Pickup area: ${seller.postal}</div><a class="contact" href="mailto:${seller.email}?subject=Question%20about%20your%20iSell%20item">Contact seller →</a></div>`;listings.appendChild(card);});}catch{buyerStatus.textContent='Listings could not load in this browser.';}}
+    document.getElementById('all-items').addEventListener('click',()=>{buyerStatus.textContent='Showing all published listings in this browser demo.';renderListings();}); document.getElementById('nearby').addEventListener('click',()=>{const postal=buyerPostal.value.trim();buyerStatus.textContent=postal?`Showing listings sorted by similarity to ${postal}.`:'Enter a ZIP / postal code first.';if(postal)renderListings(postal);});renderListings();
+  </script>
+</body>
+</html>
